@@ -16,7 +16,21 @@ def on_move(self, state)
 def on_game_over(self, state):
 def start(self):
 '''
+'''
+ Json send in the def on_move(self, state)
+{
+    "board"             : STRING,
+    "enpassant"         : COORDENADA,
+    "who_moves"         : -1 OU 1,
+    "bad_move"          : BOOLEAN,
+    "white_infractions" : INTEGER,
+    "black_infractions" : INTEGER,
+    "winner"            : -1, 0 OU 1,
+    "50moves"           : BOOLEAN,
+    "draw"              : BOOLEAN
+}
 
+'''
 
 # BOT
 class CleverBot(LiacBot):
@@ -26,7 +40,7 @@ class CleverBot(LiacBot):
         super(CleverBot, self).__init__()
         self.last_move = None
 
-    def on_move(self, state):
+    def on_move(self, state): # state = json
         print 'Generating a move...',
         board = Board(state)
 
