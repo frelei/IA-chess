@@ -20,9 +20,8 @@ class Board(object):
 		str_pos = 0
 		for char in state["board"]:
 			if char != '.':
-				str_pos += 1
 				piece_lst.append( self.select_piece(char.lower(),state['board'], str_pos))
-
+			str_pos += 1
 		return piece_lst
 
 	def select_piece(self,char, board, str_pos):
@@ -55,6 +54,7 @@ class Piece(object):
 	def is_opponent(self, piece):
 		return piece is not None and piece.team != self.team
 	
+	#Prob/ is with problems
 	def is_enemy(self, my_piece, other_piece):
 		if my_piece.islower() and other_piece.islower():
 			return True 
@@ -72,36 +72,31 @@ class Pawn(Piece):
 		print board
 
 	def	generate(self):
-		board = self.board
+		board = list(self.board)
 		pos = self.pos
 		board_lst = []
-		work_board = board[:]
 
-		x = pos + 8
-		if board[pos] == 'p' :
-			if board[x] == '.':
-				print board[pos] , board[x] , pos, x
-				aux_list = list(board) #Perfomance issues, strings are immutable in python
-				aux_list[pos] = '.'    #TODO swap strings function
-				aux_list[x] = 'p'
-				work_board = ''.join(aux_list)
-
-			board_lst.append(work_board)
+		x = pos + 8 #If is the other side subtract
+		if board[x] == '.':
 			work_board = copy.deepcopy(board)
-			if board[x-1] == self.is_enemy(board[pos],board[x]):
-				aux_list = list(board)
-				aux_list[pos] = '.'
-				aux_list[x-1] = 'p'
-				work_board = ''.join(aux_list)
-	
-			board_lst.append(work_board)
-
-			if board[x+1] == self.is_enemy(board[pos],board[x]):
-				aux_list = list(board)
-				aux_list[pos] = '.'
-				aux_list[x+1] = 'p'
-				work_board = ''.join(aux_list)
+			work_board[pos] = '.'    
+			work_board[x] = 'p'
+			board_lst.append(''.join(work_board))
 		
+	
+		if self.is_enemy(board[pos],board[x]):
+			work_board = copy.deepcopy(board)
+			work_board[pos] = '.'    
+			work_board[x-1] = 'p'
+			board_lst.append(''.join(work_board))
+
+
+		if self.is_enemy(board[pos],board[x]):
+			work_board = copy.deepcopy(board)
+			work_board[pos] = '.'    
+			work_board[x+1] = 'p'
+			board_lst.append(''.join(work_board))
+
 		
 		return board_lst
 
@@ -116,13 +111,24 @@ class Rook(Piece):
 
 	#Stub
 	def	generate(self):
-		
-		board = self.board
+		board = list(self.board)
 		pos = self.pos
 		board_lst = []
-		work_board = board[:]
-		thereturn = board_lst.append(work_board)
-
+	
+		#Vertical movement
+		for x in range(pos,64,8):
+			if board[x] == '.': # or self.is_enemy(board[pos],board[x])
+				print "r", pos, x
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'r'
+				board_lst.append(''.join(work_board))
+			else:
+				print "break"
+				break #The there's a piece in the way.
+				
+		#Horizontal TODO
+			
 		return board_lst
 
 class Bishop(Piece):
@@ -146,7 +152,9 @@ class Bishop(Piece):
 		return board_lst
 
 board = Board(state)
-
-
+p_lst = board.get_piece_lst(state)
+for b in p_lst:
+	for newBoard in b.generate():
+		print newBoard
 
 
