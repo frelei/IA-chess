@@ -6,8 +6,19 @@ state = {
 '''
 
 state = {
-"board" : ".r......b........................................................"
+"board" : "r.......b........................................................"
 }
+
+
+
+state1 = {
+"board" : "....r...b........................................................"
+}
+'''
+state = {
+"board" : "............................b...................................."
+}
+'''
 
 '''
 state = {
@@ -17,6 +28,21 @@ state = {
 WHITE = 1
 BLACK = -1
 NONE = 0
+
+#TODO convert absolute position to coord position
+def diff(str1 , str2):
+	position = -1
+	firstTime = True
+	for pair in zip(list(str1), list(str2)):
+		position += 1
+		if pair[0] != pair[1] and firstTime:
+			print "from" , position
+			firstTime = False
+			continue
+		if pair[0] != pair[1] and not firstTime:
+			print "to" , position
+			
+diff(state['board'],state1['board'])
 
 class Board(object):
 	def __init__(self, state):
@@ -118,7 +144,6 @@ class Rook(Piece):
 	def __str__(self):
 		print board
 
-	#Stub
 	def	generate(self):
 		board = list(self.board)
 		pos = self.pos
@@ -169,18 +194,50 @@ class Bishop(Piece):
 	#Stub
 	def	generate(self):
 		
-		board = self.board
+		board = list(self.board)
 		pos = self.pos
 		board_lst = []
-		work_board = board[:]
-		thereturn = board_lst.append(work_board)
 
+		#Upper right diag
+		for x in xrange(pos,64,9):
+			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'b'
+				board_lst.append(''.join(work_board))
+		#Upper left diag
+		for x in xrange(pos,64,7):
+			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'b'
+				board_lst.append(''.join(work_board))	
+
+		#Lower left(?) diag
+		for x in xrange(pos,0,-7):
+			print x
+			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'b'
+				board_lst.append(''.join(work_board))
+
+		#Lower right(?) diag
+		for x in xrange(pos,0,-9):
+			print x
+			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'b'
+				board_lst.append(''.join(work_board))
+				
+		
 		return board_lst
-
+'''
 board = Board(state)
 p_lst = board.get_piece_lst(state)
 for b in p_lst:
 	for newBoard in b.generate():
 		print newBoard
-
+'''
 
