@@ -1,9 +1,19 @@
 import copy
-
+'''
 state = {
 "board" : "r.b...b.rpppppppp................................PPPPPPPPR.B..B.R"
 }
+'''
 
+state = {
+"board" : ".r......b........................................................"
+}
+
+'''
+state = {
+"board" : "...r............................................................."
+}
+'''
 WHITE = 1
 BLACK = -1
 NONE = 0
@@ -54,12 +64,11 @@ class Piece(object):
 	def is_opponent(self, piece):
 		return piece is not None and piece.team != self.team
 	
-	#Prob/ is with problems
 	def is_enemy(self, my_piece, other_piece):
 		if my_piece.islower() and other_piece.islower():
-			return True 
+			return False 
 		else: 
-			return False	
+			return True	
 
 
 class Pawn(Piece):
@@ -76,7 +85,7 @@ class Pawn(Piece):
 		pos = self.pos
 		board_lst = []
 
-		x = pos + 8 #If is the other side subtract
+		x = pos + 8 #If is the other player, subtract
 		if board[x] == '.':
 			work_board = copy.deepcopy(board)
 			work_board[pos] = '.'    
@@ -116,19 +125,36 @@ class Rook(Piece):
 		board_lst = []
 	
 		#Vertical movement
-		for x in range(pos,64,8):
-			if board[x] == '.': # or self.is_enemy(board[pos],board[x])
-				print "r", pos, x
+		for x in range(pos+8,64,8):
+			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
 				work_board = copy.deepcopy(board)
 				work_board[pos] = '.'    
 				work_board[x] = 'r'
 				board_lst.append(''.join(work_board))
 			else:
-				print "break"
 				break #The there's a piece in the way.
 				
-		#Horizontal TODO
-			
+
+		#0 - 7 / 8 - 15 / 16 - 23 / 24 - 31 / 32 - 39 / 40 - 47 / 48 - 55 / 56 - 63
+		#find out how many positions I have to move -> 8 - (pos % 8)
+		for x in range(pos+1, pos +  8 - (pos % 8), 1):
+			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'r'
+				board_lst.append(''.join(work_board))
+			else:
+				break
+
+		for x in range(pos - (pos % 8), pos, 1):
+			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'r'
+				board_lst.append(''.join(work_board))
+			else:
+				break
+
 		return board_lst
 
 class Bishop(Piece):
