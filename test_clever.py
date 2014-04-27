@@ -21,22 +21,19 @@ state = {
 '''
 
 
+'''
 state = {
 "board" : "p......P........................................................"
 }
-
+'''
 WHITE = 1
 BLACK = -1
 NONE = 0
-'''
-def strmirror(str):
-	maxs = 64
-	for i in xrange(0,32):
-	    str[i] = str[maxs - i]
 
-'''
-print state['board']
-print "".join(map(lambda x : x.upper() if x.islower() else x.lower(), state['board'][::-1]))	
+#Inverte o tabuleiro fazendo o oponente ter visao de jogador
+#Como testar: ?
+def str_reverse(str):
+	return "".join(map(lambda x : x.upper() if x.islower() else x.lower(), str[::-1]))	
 
 #TODO verify
 def pos_to_coord(aNumber):
@@ -67,7 +64,7 @@ class Board(object):
 		piece_lst = []
 		str_pos = 0
 		for char in state["board"]:
-			if char != '.':
+			if char != '.' and char != 'x':
 				piece_lst.append( self.select_piece(char,state['board'], str_pos))
 			str_pos += 1
 		return piece_lst
@@ -126,9 +123,13 @@ class Pawn(Piece):
 		color = self.piece_color
 		pos = self.pos
 		board_lst = []
+		
+		if (color == BLACK):
+			board = list(str_reverse("".join(board)))
+			pos = 64 - pos
 
-		x = pos + 8 * color
-
+		x = pos + 8
+		
 		if board[x] == '.':
 			work_board = copy.deepcopy(board)
 			work_board[pos] = '.'    
@@ -138,18 +139,23 @@ class Pawn(Piece):
 		#It's not only subtract the position because the piece
 		#could be in an edge, e. g, 8
 		if self.is_enemy(board[pos],board[x+1]):
-			work_board = copy.deepcopy(board)
-			work_board[pos] = '.'    
-			work_board[x-1] = 'p'
-			board_lst.append(''.join(work_board))
-
-
-		if self.is_enemy(board[pos],board[x-1]):
+		#	print pos_to_coord(pos)
+		#	print pos_to_coord(x+1)	
 			work_board = copy.deepcopy(board)
 			work_board[pos] = '.'    
 			work_board[x+1] = 'p'
 			board_lst.append(''.join(work_board))
 
+
+		if self.is_enemy(board[pos],board[x-1]):
+			print "x-1"
+			work_board = copy.deepcopy(board)
+			work_board[pos] = '.'    
+			work_board[x-1] = 'p'
+			board_lst.append(''.join(work_board))
+
+		if (color == BLACK):
+			board_lst = map(str_reverse, board_lst)
 		
 		return board_lst
 
@@ -257,4 +263,78 @@ for b in p_lst:
 	for newBoard in b.generate():
 		print newBoard
 '''
+def print_board(str):
+	print str[0:7]
+	print str[8:15]
+	print str[16:23]
+	print str[24:31]
+	print str[32:39]
+	print str[40:47]
+	print str[48:55]
+	print str[56:63]
+	
+def test_diff():
+	str1 = "........p........................................................"
+	str2 = "................p................................................"
+	print diff(str1,str2)
+	
+def test_pawn():
+	#Caso do primeiro movimento do peao
+	state = {"board" : "........p........................................................"}
+
+	r1 = "................p................................................"
+	r2 = "........................p........................................"
+	
+	
+	'''
+	board = Board(state)
+	p_lst = board.get_piece_lst(state)
+	for b in p_lst:
+		print b.piece_color
+		for newBoard in b.generate():
+			print newBoard
+			state['board'] = newBoard
+			print r1
+	
+	board = Board(state)
+	p_lst = board.get_piece_lst(state)
+	for b in p_lst:
+		print b.piece_color
+		for newBoard in b.generate():
+			print newBoard
+			print r2
+	
+	#Nao pode ir pra frente -> vazio
+	state = {"board" : "........p.......P................................................"}
+	board = Board(state)
+	p_lst = board.get_piece_lst(state)
+	for b in p_lst:
+		print b.piece_color
+		for newBoard in b.generate():
+			print newBoard
+	'''		
+	state = {"board" : "........p.......P..............................................."}
+	print_board(state['board'])
+	board = Board(state)
+	p_lst = board.get_piece_lst(state)
+	for b in p_lst:
+		print b.piece_color
+		for newBoard in b.generate():
+			print_board(newBoard)
+			print " "
+			#print state['board']
+
+def test_bishop():
+	state = {"board" : "........b......................................................."}
+	print_board(state['board'])
+	board = Board(state)
+	p_lst = board.get_piece_lst(state)
+	for b in p_lst:
+		print b.piece_color
+		for newBoard in b.generate():
+			print_board(newBoard)
+			print " "
+			#print state['board']
+		
+test_bishop()
 
