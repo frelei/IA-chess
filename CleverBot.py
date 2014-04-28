@@ -50,17 +50,20 @@ class CleverBot(LiacBot):
 
         moves = board.generate()
 
-        move = random.choice(moves)
-        self.last_move = move
+       	#move = random.choice(moves)
+        #self.last_move = move
         print move
         self.send_move(move[0], move[1])
 
     def on_game_over(self, state):
         print 'Game Over.'
 
-
 # ==============================================================
 
+
+
+# ==============================================================
+'''
 if __name__ == '__main__':
     color = 0
     port = 50100
@@ -75,3 +78,4 @@ if __name__ == '__main__':
     bot.port = port
 
     bot.start()
+'''

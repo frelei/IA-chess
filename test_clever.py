@@ -222,7 +222,7 @@ class Bishop(Piece):
 
 		#Upper right diag
 		for x in xrange(pos,64,9):
-			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+			if board[x] != 'x' and board[x] == '.' or self.is_enemy(board[pos],board[x]):
 				work_board = copy.deepcopy(board)
 				work_board[pos] = '.'    
 				work_board[x] = 'b'
@@ -264,14 +264,33 @@ for b in p_lst:
 		print newBoard
 '''
 def print_board(str):
-	print str[0:7]
-	print str[8:15]
-	print str[16:23]
-	print str[24:31]
-	print str[32:39]
-	print str[40:47]
-	print str[48:55]
-	print str[56:63]
+	print str[0:10]
+	print str[10:20]
+	print str[20:30]
+	print " "
+	print str[21:28]
+	print " "
+	print str[30:40]
+	print str[40:49]
+	print str[50:59]
+	print str[60:69]
+	print str[70:79]
+	print str[80:89]
+	print str[90:99]
+	print str[100:109]
+	print str[110:119]
+
+def enrich_str(str):
+	return ("xxxxxxxxxxxxxxxxxxxx" 
+	+ "x" + str[0:7]   + "x" 
+	+ "x" + str[8:15]  + "x"
+	+ "x" + str[16:23] + "x"
+	+ "x" + str[24:31] + "x"
+	+ "x" + str[32:39] + "x"
+	+ "x" + str[40:47] + "x"
+	+ "x" + str[48:55] + "x"
+	+ "x" + str[56:63] + "x" + "xxxxxxxxxxxxxxxxxxxx"  )
+	
 	
 def test_diff():
 	str1 = "........p........................................................"
@@ -313,6 +332,8 @@ def test_pawn():
 		for newBoard in b.generate():
 			print newBoard
 	'''		
+
+
 	state = {"board" : "........p.......P..............................................."}
 	print_board(state['board'])
 	board = Board(state)
@@ -325,7 +346,8 @@ def test_pawn():
 			#print state['board']
 
 def test_bishop():
-	state = {"board" : "........b......................................................."}
+	state = {"board" : enrich_str("........b.......................................................")}
+	#print enrich_str(state['board'])
 	print_board(state['board'])
 	board = Board(state)
 	p_lst = board.get_piece_lst(state)
@@ -336,5 +358,6 @@ def test_bishop():
 			print " "
 			#print state['board']
 		
+print_board(enrich_str("r.b...b.rpppppppp................................PPPPPPPPR.B..B.R"))
 test_bishop()
 
