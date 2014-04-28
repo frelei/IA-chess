@@ -37,7 +37,8 @@ def str_reverse(str):
 
 #TODO verify
 def pos_to_coord(aNumber):
-	return (aNumber / 8 , aNumber % 8)
+	#return (aNumber / 8 , aNumber % 8)
+	return ((aNumber / 12) - 2 , (aNumber % 10) - 1)
 
 def diff(str1 , str2):
 	position = -1
@@ -64,7 +65,7 @@ class Board(object):
 		piece_lst = []
 		str_pos = 0
 		for char in state["board"]:
-			if char != '.' and char != 'x':
+			if char != '.' and char != '*':
 				piece_lst.append( self.select_piece(char,state['board'], str_pos))
 			str_pos += 1
 		return piece_lst
@@ -126,9 +127,11 @@ class Pawn(Piece):
 		
 		if (color == BLACK):
 			board = list(str_reverse("".join(board)))
-			pos = 64 - pos
+			#print_board("".join(board))
+			pos = 119 - pos
+			#print board[pos]
 
-		x = pos + 8
+		x = pos + 10
 		
 		if board[x] == '.':
 			work_board = copy.deepcopy(board)
@@ -136,19 +139,14 @@ class Pawn(Piece):
 			work_board[x] = 'p'
 			board_lst.append(''.join(work_board))
 		
-		#It's not only subtract the position because the piece
-		#could be in an edge, e. g, 8
-		if self.is_enemy(board[pos],board[x+1]):
-		#	print pos_to_coord(pos)
-		#	print pos_to_coord(x+1)	
+		if self.is_enemy(board[pos],board[x+1]) and board[x+1] != '*':
 			work_board = copy.deepcopy(board)
 			work_board[pos] = '.'    
 			work_board[x+1] = 'p'
 			board_lst.append(''.join(work_board))
 
 
-		if self.is_enemy(board[pos],board[x-1]):
-			print "x-1"
+		if self.is_enemy(board[pos],board[x-1]) and board[x-1] != '*':
 			work_board = copy.deepcopy(board)
 			work_board[pos] = '.'    
 			work_board[x-1] = 'p'
@@ -156,7 +154,7 @@ class Pawn(Piece):
 
 		if (color == BLACK):
 			board_lst = map(str_reverse, board_lst)
-		
+
 		return board_lst
 
 class Rook(Piece):
@@ -174,31 +172,54 @@ class Rook(Piece):
 		board_lst = []
 	
 		#Vertical movement
-		for x in range(pos+8,64,8):
-			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+		for x in range(pos+10,99,10):
+			if board[x] == '.' and board[x] != '*':
 				work_board = copy.deepcopy(board)
 				work_board[pos] = '.'    
 				work_board[x] = 'r'
 				board_lst.append(''.join(work_board))
+				
+			elif self.is_enemy(board[pos],board[x]) and board[x] != '*' :
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'r'
+				board_lst.append(''.join(work_board))
+				break
 			else:
 				break #there's a piece in the way.
+					  #Or a boundary
 				
-		#find out how many positions I have to move -> 8 - (pos % 8)
-		for x in range(pos+1, pos +  8 - (pos % 8), 1):
-			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+
+		for x in range(pos+1, pos +  10 - (pos % 10), 1):
+			#print x , pos_to_coord(x) , (x % 10)
+			if board[x] == '.' and board[x] != '*':
 				work_board = copy.deepcopy(board)
 				work_board[pos] = '.'    
 				work_board[x] = 'r'
 				board_lst.append(''.join(work_board))
+				
+			elif self.is_enemy(board[pos],board[x]) and board[x] != '*' :
+	
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'r'
+				board_lst.append(''.join(work_board))
+				break
 			else:
 				break
 
-		for x in range(pos - (pos % 8), pos, 1):
-			if board[x] == '.' or self.is_enemy(board[pos],board[x]):
+		for x in xrange( pos-1 , pos + 1 - (pos % 10),  -1):
+			if board[x] == '.' and board[x] != '*':
 				work_board = copy.deepcopy(board)
 				work_board[pos] = '.'    
 				work_board[x] = 'r'
 				board_lst.append(''.join(work_board))
+			elif self.is_enemy(board[pos],board[x]) and board[x] != '*'  :
+				work_board = copy.deepcopy(board)
+				work_board[pos] = '.'    
+				work_board[x] = 'r'
+				board_lst.append(''.join(work_board))
+				break
 			else:
 				break
 
@@ -267,29 +288,26 @@ def print_board(str):
 	print str[0:10]
 	print str[10:20]
 	print str[20:30]
-	print " "
-	print str[21:28]
-	print " "
 	print str[30:40]
-	print str[40:49]
-	print str[50:59]
-	print str[60:69]
-	print str[70:79]
-	print str[80:89]
-	print str[90:99]
-	print str[100:109]
-	print str[110:119]
+	print str[40:50]
+	print str[50:60]
+	print str[60:70]
+	print str[70:80]
+	print str[80:90]
+	print str[90:100]
+	print str[100:110]
+	print str[110:120]
 
 def enrich_str(str):
-	return ("xxxxxxxxxxxxxxxxxxxx" 
-	+ "x" + str[0:7]   + "x" 
-	+ "x" + str[8:15]  + "x"
-	+ "x" + str[16:23] + "x"
-	+ "x" + str[24:31] + "x"
-	+ "x" + str[32:39] + "x"
-	+ "x" + str[40:47] + "x"
-	+ "x" + str[48:55] + "x"
-	+ "x" + str[56:63] + "x" + "xxxxxxxxxxxxxxxxxxxx"  )
+	return ("********************" 
+	+ "*" + str[0:8]   + "*" 
+	+ "*" + str[8:16]  + "*"
+	+ "*" + str[16:24] + "*"
+	+ "*" + str[24:32] + "*"
+	+ "*" + str[32:40] + "*"
+	+ "*" + str[40:48] + "*"
+	+ "*" + str[48:56] + "*"
+	+ "*" + str[56:64] + "*" + "********************"  )
 	
 	
 def test_diff():
@@ -299,51 +317,31 @@ def test_diff():
 	
 def test_pawn():
 	#Caso do primeiro movimento do peao
-	state = {"board" : "........p........................................................"}
-
-	r1 = "................p................................................"
-	r2 = "........................p........................................"
+	#state = {"board" : "........p........................................................"}
 	
+	str = enrich_str("........p.......P...............................................")
+	state = {"board" : str}
 	
-	'''
-	board = Board(state)
-	p_lst = board.get_piece_lst(state)
-	for b in p_lst:
-		print b.piece_color
-		for newBoard in b.generate():
-			print newBoard
-			state['board'] = newBoard
-			print r1
-	
-	board = Board(state)
-	p_lst = board.get_piece_lst(state)
-	for b in p_lst:
-		print b.piece_color
-		for newBoard in b.generate():
-			print newBoard
-			print r2
-	
-	#Nao pode ir pra frente -> vazio
-	state = {"board" : "........p.......P................................................"}
-	board = Board(state)
-	p_lst = board.get_piece_lst(state)
-	for b in p_lst:
-		print b.piece_color
-		for newBoard in b.generate():
-			print newBoard
-	'''		
-
-
-	state = {"board" : "........p.......P..............................................."}
 	print_board(state['board'])
+	print "board printed"
 	board = Board(state)
 	p_lst = board.get_piece_lst(state)
 	for b in p_lst:
-		print b.piece_color
 		for newBoard in b.generate():
 			print_board(newBoard)
 			print " "
-			#print state['board']
+			
+	str = enrich_str("........p........P..............................................")
+	state = {"board" : str}
+	
+	print_board(state['board'])
+	print "board printed"
+	board = Board(state)
+	p_lst = board.get_piece_lst(state)
+	for b in p_lst:
+		for newBoard in b.generate():
+			print_board(newBoard)
+			print " "
 
 def test_bishop():
 	state = {"board" : enrich_str("........b.......................................................")}
@@ -352,12 +350,26 @@ def test_bishop():
 	board = Board(state)
 	p_lst = board.get_piece_lst(state)
 	for b in p_lst:
-		print b.piece_color
 		for newBoard in b.generate():
 			print_board(newBoard)
-			print " "
-			#print state['board']
-		
-print_board(enrich_str("r.b...b.rpppppppp................................PPPPPPPPR.B..B.R"))
-test_bishop()
 
+def test_rook():
+	state = {"board" : enrich_str("..........P...r.................................................")}
+	#print enrich_str(state['board'])
+	print_board(state['board'])
+	board = Board(state)
+	p_lst = board.get_piece_lst(state)
+	for b in p_lst:
+		for newBoard in b.generate():
+			print_board(newBoard)
+			
+	state = {"board" : enrich_str("...........................................................r....")}
+	#print enrich_str(state['board'])
+	print_board(state['board'])
+	board = Board(state)
+	p_lst = board.get_piece_lst(state)
+	for b in p_lst:
+		for newBoard in b.generate():
+			print_board(newBoard)
+
+	
