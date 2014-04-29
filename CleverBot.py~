@@ -49,7 +49,7 @@ class CleverBot(LiacBot):
             raw_input()
 
         pieces = board.get_piece_lst(state)
-	moves = random.choice(pieces).generate()
+	move = pieces.generate()
        	the_move = random.choice(moves)
         #self.last_move = move
         #print move
