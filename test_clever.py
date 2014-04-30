@@ -17,7 +17,7 @@ def str_reverse(str):
 #TODO verify
 def pos_to_coord(aNumber):
 	#return (aNumber / 8 , aNumber % 8)
-	return ((aNumber / 12) - 1 , (aNumber % 10) - 1)
+	return ((aNumber / 12), (aNumber % 10) )
 
 def diff(str1 , str2):
 	position = -1
@@ -32,6 +32,7 @@ def diff(str1 , str2):
 			continue
 		if pair[0] != pair[1] and not firstTime:
 			t = position
+	print f , t
 	return pos_to_coord(f) , pos_to_coord(t)
 
 
@@ -403,8 +404,9 @@ def test_rook():
 
 
 def test_diff():
-	str1 = enrich_str(".......p........................................................")
-	str2 = enrich_str("........p.......................................................")
+	
+	str1 = enrich_str("p...............................................................")
+	str2 = enrich_str("b...............................................................")
 	print diff(str1,str2)
 	
 	str1 = enrich_str("p...............................................................")
@@ -414,4 +416,11 @@ def test_diff():
 	str1 = enrich_str("..............................................................p.")
 	str2 = enrich_str("...............................................................p")
 	print diff(str1,str2) , " (7,1) (7,0)"
+
+	str1 = enrich_str("r.b...b.rpppppppp................................PPPPPPPPR.B..B.R")
+	str2 = enrich_str("r.b...br.pppppppp................................PPPPPPPPR.B..B.R")
+
+	print str1[28] , str1[31]
+	print diff(str1,str2)  , "(0,7) (0,6)"
+	
 test_diff()	

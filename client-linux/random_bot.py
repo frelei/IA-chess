@@ -10,30 +10,30 @@ NONE = 0
 
 # BOT =========================================================================
 class RandomBot(LiacBot):
-    name = 'Random Bot'
+	name = 'Random Bot'
 
-    def __init__(self):
-        super(RandomBot, self).__init__()
-        self.last_move = None
+	def __init__(self):
+		super(RandomBot, self).__init__()
+		self.last_move = None
 
-    def on_move(self, state):
-        print 'Generating a move...',
-        board = Board(state)
+	def on_move(self, state):
+		print 'Generating a move...',
+		board = Board(state)
+		print state['board']
+		if state['bad_move']:
+			print state['board']
+			raw_input()
 
-        if state['bad_move']:
-            print state['board']
-            raw_input()
+		moves = board.generate()
 
-        moves = board.generate()
+		move = random.choice(moves)
+		self.last_move = move
+		print move
+		self.send_move(move[0], move[1])
 
-        move = random.choice(moves)
-        self.last_move = move
-        print move
-        self.send_move(move[0], move[1])
-
-    def on_game_over(self, state):
-        print 'Game Over.'
-        # sys.exit()
+	def on_game_over(self, state):
+		print 'Game Over.'
+		# sys.exit()
 # =============================================================================
 
 # MODELS ======================================================================

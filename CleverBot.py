@@ -1,6 +1,7 @@
 import time
 import sys
 import random
+import copy
 
 from base_client import LiacBot
 
@@ -34,29 +35,44 @@ def start(self):
 
 # BOT
 class CleverBot(LiacBot):
-    name = 'CleverBot'
+	name = 'CleverBot'
 
-    def __init__(self):
-        super(CleverBot, self).__init__()
-        self.last_move = None
+	def __init__(self):
+		super(CleverBot, self).__init__()
+		self.last_move = None
+		self.counter = 0
 
-    def on_move(self, state): # state = json
-        print 'Generating a move...',
-        board = Board(state)
+	def on_move(self, state): # state = json
+		print 'Generating a move...',
+		#print state['who_moves']
+		print_board(enrich_str( state['board'] ))
+		print 'current board printed'
+		board = Board( enrich_str( state['board'] ))
 
-        if state['bad_move']:
-            print state['board']
-            raw_input()
+		if state['bad_move']:
+			print state['board']
+			print "alo"
+			raw_input()
 
-        pieces = board.get_piece_lst(state)
-	moves = random.choice(pieces).generate()
-       	the_move = random.choice(moves)
-        #self.last_move = move
-        #print move
-        self.send_move(diff(state['board'], the_move))
+		pieces = board.get_piece_lst()
+		moves = random.choice(pieces).generate()
+		for m in moves:
+			print moves
+		
+		the_move = moves[0]
+		self.counter += 1
+		print "PRINTING SELECTED MOVE"
+		print_board(the_move)
+		f , b = diff( enrich_str(state['board']), the_move)
+		print f , b
+		self.send_move(f,b)
+		del board
+		del pieces
+		del moves
+		del the_move
 
-    def on_game_over(self, state):
-        print 'Game Over.'
+	def on_game_over(self, state):
+		print 'Game Over.'
 
 # ==============================================================
 
@@ -89,12 +105,13 @@ class Board(object):
 		self.state = state
 
 
-	def get_piece_lst(self,state):
+	def get_piece_lst(self):
+		state = self.state
 		piece_lst = []
 		str_pos = 0
-		for char in state["board"]:
-			if char != '.' and char != '*':
-				piece_lst.append( self.select_piece(char,state['board'], str_pos))
+		for char in state:
+			if char != '.' and char != '*' and char.islower() :
+				piece_lst.append( self.select_piece(char,state, str_pos) )
 			str_pos += 1
 		return piece_lst
 
@@ -159,6 +176,7 @@ class Pawn(Piece):
 			pos = 119 - pos
 			#print board[pos]
 
+		print_board("".join(board))
 		x = pos + 10
 		
 		if board[x] == '.':
@@ -269,7 +287,6 @@ class Bishop(Piece):
 
 	def __str__(self):
 		print board
-
 
 	def	generate(self):
 		
