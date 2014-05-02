@@ -5,8 +5,8 @@ import copy
 
 from base_client import LiacBot
 
-WHITE = 1
-BLACK = -1
+WHITE = -1
+BLACK = 1 
 NONE = 0
 
 
@@ -43,33 +43,57 @@ class CleverBot(LiacBot):
 		self.counter = 0
 
 	def on_move(self, state): # state = json
-		print 'Generating a move...',
+		#print 'Generating a move...',
 		#print state['who_moves']
-		print_board(enrich_str( state['board'] ))
-		print 'current board printed'
-		board = Board( enrich_str( state['board'] ))
-
+		#print_board(enrich_str( state['board'] ))
+		#print 'current board printed'
+		print state['who_moves']
+		#the_board = (enrich_str(state['board']))
+		the_board = (enrich_str(state['board']))
+		'''if(self.counter == 0):
+			
+		else:
+			print "reversed"
+			the_board = str_reverse(enrich_str(state['board']))
+		'''
+		print_board(the_board)
+		board = Board(the_board)
 		if state['bad_move']:
 			print state['board']
 			print "alo"
 			raw_input()
-
+	
+	
 		pieces = board.get_piece_lst()
-		moves = random.choice(pieces).generate()
-		for m in moves:
-			print moves
+		for p in pieces:
+			print p.pos
+			
+		#print len(pieces)
+		#moves = random.choice(pieces).generate()
+		#the_move = random.choice(moves)
 		
-		the_move = moves[0]
-		self.counter += 1
-		print "PRINTING SELECTED MOVE"
-		print_board(the_move)
-		f , b = diff( enrich_str(state['board']), the_move)
+		#Escolher random da problema pois podemos
+		#Escolher uma peca que esta imovel
+		
+		moves = random.choice(pieces).generate()
+		while len(moves) < 1 :
+			moves = random.choice(pieces).generate()
+			
+		the_move = random.choice(moves)
+		self.counter = self.counter + 1
+		#print "PRINTING SELECTED MOVE"
+		#print_board(the_move)
+		#print state['board']
+		
+		print " "
+		print_derich_str(the_move)
+		f , b = diff(derich_str(the_board), derich_str(the_move))
 		print f , b
 		self.send_move(f,b)
-		del board
-		del pieces
-		del moves
-		del the_move
+		#del board
+		#del pieces
+		#del moves
+		#del the_move
 
 	def on_game_over(self, state):
 		print 'Game Over.'
@@ -81,8 +105,8 @@ def str_reverse(str):
 	return "".join(map(lambda x : x.upper() if x.islower() else x.lower(), str[::-1]))
 
 def pos_to_coord(aNumber):
-	#return (aNumber / 8 , aNumber % 8)
-	return ((aNumber / 12) - 1 , (aNumber % 10) - 1)
+	return (aNumber / 8 , aNumber % 8)
+	#return ((aNumber / 12) - 1 , (aNumber % 10) - 1)
 
 def diff(str1 , str2):
 	position = -1
@@ -107,6 +131,23 @@ class Board(object):
 
 	def get_piece_lst(self):
 		state = self.state
+		'''
+		aux = ""
+		print "state before"
+		print state
+		for c in state:
+			if c.islower() and c != '*' and c != '.':
+				print c
+				aux = aux + c.upper()
+			if c.isupper() and c != '*' and c != '.':
+				aux = aux + c.lower()
+			if c == '*' or c == '.':
+				aux = aux + c 
+		
+		state = aux
+		'''
+		print "the state"
+		print state
 		piece_lst = []
 		str_pos = 0
 		for char in state:
@@ -176,7 +217,7 @@ class Pawn(Piece):
 			pos = 119 - pos
 			#print board[pos]
 
-		print_board("".join(board))
+		#print_board("".join(board))
 		x = pos + 10
 		
 		if board[x] == '.':
@@ -404,6 +445,26 @@ def enrich_str(str):
 	+ "*" + str[48:56] + "*"
 	+ "*" + str[56:64] + "*" + "********************"  )
 
+def derich_str(str):
+	return (str[21:29] 
+	+ str[31:39] 
+	+ str[41:49]
+	+ str[51:59]
+	+ str[61:69]
+	+ str[71:79]
+	+ str[81:89]
+	+ str[91:99] )
+	
+def print_derich_str(str):
+	print str[21:29] 
+	print str[31:39] 
+	print str[41:49]
+	print str[51:59]
+	print str[61:69]
+	print str[71:79]
+	print str[81:89]
+	print str[91:99]
+	
 # ==============================================================
 
 if __name__ == '__main__':

@@ -1,25 +1,140 @@
+import time
+import sys
+import random
 import copy
 
-'''
-state = {
-"board" : "r.b...b.rpppppppp................................PPPPPPPPR.B..B.R"
-}
-'''
+from base_client import LiacBot
+
 WHITE = 1
 BLACK = -1
 NONE = 0
 
+
+ # INTERFACE
+''' 
+def send_move(self, from_, to_)
+def on_move(self, state)
+def on_game_over(self, state):
+def start(self):
+'''
+'''
+ Json send in the def on_move(self, state)
+{
+    "board"             : STRING,
+    "enpassant"         : COORDENADA,
+    "who_moves"         : -1 OU 1,
+    "bad_move"          : BOOLEAN,
+    "white_infractions" : INTEGER,
+    "black_infractions" : INTEGER,
+    "winner"            : -1, 0 OU 1,
+    "50moves"           : BOOLEAN,
+    "draw"              : BOOLEAN
+}
+
+'''
+
+def str_case(str):
+	aux = ""
+	for c in str:
+		if c.islower() and c != '*' and c != '.':
+			print c
+			aux = aux + c.upper()
+		if c.isupper() and c != '*' and c != '.':
+			aux = aux + c.lower()
+		if c == '*' or c == '.':
+			aux = aux + c 
+		
+	return "".join(aux)
+
+def str_mirror(str):
+	return(inv(str[0:10])
+	+ inv(str[10:20])
+	+ inv(str[20:30])
+	+ inv(str[30:40])
+	+ inv(str[40:50])
+	+ inv(str[50:60])
+	+ inv(str[60:70])
+	+ inv(str[70:80])
+	+ inv(str[80:90])
+	+ inv(str[90:100])
+	+ inv(str[100:110])
+	+ inv(str[110:120]) )
+	
+	
+def print_mirror_board(str):
+	print inv(str[0:10])
+	print inv(str[10:20])
+	print inv(str[20:30])
+	print inv(str[30:40])
+	print inv(str[40:50])
+	print inv(str[50:60])
+	print inv(str[60:70])
+	print inv(str[70:80])
+	print inv(str[80:90])
+	print inv(str[90:100])
+	print inv(str[100:110])
+	print inv(str[110:120])
+
+def inv(str):
+	return str[::-1]
+# BOT
+class CleverBot(LiacBot):
+	name = 'CleverBot'
+
+	def __init__(self):
+		super(CleverBot, self).__init__()
+		self.last_move = None
+		self.counter = 0
+
+	def on_move(self, state): # state = json
+	
+		the_board = str_mirror(str_reverse(enrich_str(state['board'])))
+		my_color = state['who_moves']
+		
+		board = Board(the_board)
+
+		if state['bad_move']:
+			print state['board']
+			raw_input()
+	
+		pieces = board.get_piece_lst(my_color)
+		
+		
+		for p in pieces:
+			print p.pos
+		
+		
+		moves = random.choice(pieces).generate()
+		while len(moves) < 1 :
+			moves = random.choice(pieces).generate()
+			
+		the_move = random.choice(moves)
+		self.counter = self.counter + 1
+
+		print " "
+		print_derich_str(the_move)
+		
+			
+		(f , b )= diff(derich_str(the_board), derich_str(the_move), my_color)
+
+		print f , b
+		self.send_move(f,b)
+
+
+	def on_game_over(self, state):
+		print 'Game Over.'
+
+# ==============================================================
+
 #Inverte o tabuleiro fazendo o oponente ter visao de jogador
-#Como testar: ?
 def str_reverse(str):
 	return "".join(map(lambda x : x.upper() if x.islower() else x.lower(), str[::-1]))
 
-#TODO verify
 def pos_to_coord(aNumber):
 	return (aNumber / 8 , aNumber % 8)
-	#return ((aNumber / 12), (aNumber % 10) )
 
-def diff(str1 , str2, color):
+
+def diff(str1 , str2 , color):
 	position = -1
 	firstTime = True
 	f = 0
@@ -38,7 +153,7 @@ def diff(str1 , str2, color):
 		aux = t
 		t = f
 		f = aux
-		
+	
 	if (str2[f].isupper()) and str2[f].isalpha() and color == BLACK:
 		print "swap BLACK"
 		aux = t
@@ -53,26 +168,24 @@ class Board(object):
 	def __init__(self, state):
 		self.state = state
 
-
-
-	def get_piece_lst(self,state, color):
+	def get_piece_lst(self,color):
 		piece_lst = []
 		str_pos = 0
-		
+		state = self.state
 		def test(c):
 			if color == BLACK : 
 				return c.isupper()
 			else:
 				return c.islower()
 		
-		for char in state["board"]:
+		for char in state:
 			if char != '.' and char != '*' and test(char):
 				print char
-				piece_lst.append( self.select_piece(char,state['board'], str_pos, color))
+				piece_lst.append( self.select_piece(char,state, str_pos, color))
 			str_pos += 1
 		return piece_lst
 
-	def select_piece(self,char, board, str_pos, my_color):
+	def select_piece(self,char, board, str_pos, color):
 	
 		PIECES = {
 			'r': Rook,
@@ -81,12 +194,8 @@ class Board(object):
 			#'q': Queen,
 			#'n': Knight,
 		}
-		
 		the_piece = PIECES[char.lower()]
-		if char.lower() == char:
-			color = WHITE
-		else:
-			color = BLACK
+
 		return the_piece(color,board,str_pos)
 		
 
@@ -104,7 +213,7 @@ class Piece(object):
 		return piece is not None and piece.team != self.team
 	
 	def is_enemy(self, my_piece, other_piece):
-		if other_piece == '.':
+		if other_piece == '.' or other_piece == '*':
 			return False
 		if my_piece.islower() and other_piece.islower():
 			return False 
@@ -128,12 +237,13 @@ class Pawn(Piece):
 		board_lst = []
 		
 		if (color == BLACK):
-			print "black"
+			print "black move"
 			board = list(str_reverse("".join(board)))
 			#print_board("".join(board))
 			pos = 119 - pos
 			#print board[pos]
 
+		#print_board("".join(board))
 		x = pos + 10
 		
 		if board[x] == '.':
@@ -244,7 +354,6 @@ class Bishop(Piece):
 
 	def __str__(self):
 		print board
-
 
 	def	generate(self):
 		
@@ -361,7 +470,7 @@ def enrich_str(str):
 	+ "*" + str[40:48] + "*"
 	+ "*" + str[48:56] + "*"
 	+ "*" + str[56:64] + "*" + "********************"  )
-	
+
 def derich_str(str):
 	return (str[21:29] 
 	+ str[31:39] 
@@ -380,119 +489,22 @@ def print_derich_str(str):
 	print str[61:69]
 	print str[71:79]
 	print str[81:89]
-	print str[91:99] 
+	print str[91:99]
 	
+# ==============================================================
+
+if __name__ == '__main__':
+    color = 0
+    port = 50100
 	
-	
-def test_diff():
-	str1 = "........p........................................................"
-	str2 = "................p................................................"
-	print diff(str1,str2)
-	
-def test_pawn():
-	#Caso do primeiro movimento do peao
-	#state = {"board" : "........p........................................................"}
-	
-	str = enrich_str("........p.......P...............................................")
-	state = {"board" : str}
-	
-	print_board(state['board'])
-	print "board printed"
-	board = Board(state)
-	p_lst = board.get_piece_lst(state)
-	for b in p_lst:
-		for newBoard in b.generate():
-			print_board(newBoard)
-			print " "
-			
-	str = enrich_str("........p........P..............................................")
-	state = {"board" : str}
-	
-	print_board(state['board'])
-	print "board printed"
-	board = Board(state)
-	p_lst = board.get_piece_lst(state)
-	for b in p_lst:
-		for newBoard in b.generate():
-			print_board(newBoard)
-			print " "
 
-def test_bishop():
-	state = {"board" : enrich_str("..............B.................................................")}
-	#print enrich_str(state['board'])
-	print_board(state['board'])
-	board = Board(state)
-	p_lst = board.get_piece_lst(state)
-	for b in p_lst:
-		for newBoard in b.generate():
-			print_board(newBoard)
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'black':
+            color = 1
+            port = 50200
 
-def test_rook():
-	state = {"board" : enrich_str("..........P...r.................................................")}
-	#print enrich_str(state['board'])
-	print_board(state['board'])
-	board = Board(state)
-	p_lst = board.get_piece_lst(state)
-	for b in p_lst:
-		for newBoard in b.generate():
-			print_board(newBoard)
-			
-	state = {"board" : enrich_str("...........................................................r....")}
-	#print enrich_str(state['board'])
-	print_board(state['board'])
-	board = Board(state)
-	p_lst = board.get_piece_lst(state)
-	for b in p_lst:
-		for newBoard in b.generate():
-			print_board(newBoard)
+    bot = CleverBot()
+    bot.port = port
 
+    bot.start()
 
-def test_diff():
-	
-	'''
-	str1 = enrich_str("p...............................................................")
-	str2 = enrich_str("b...............................................................")
-	print diff(derich_str(str1), derich_str(str2))
-	
-	str1 = enrich_str("p...............................................................")
-	str2 = enrich_str(".p..............................................................")
-	print diff(derich_str(str1), derich_str(str2)) , "(0,0) (0,1)"
-
-	str1 = enrich_str("........................................................p.......")
-	str2 = enrich_str(".........................................................p......")
-	print_derich_str(str1)
-
-	print diff(derich_str(str1), derich_str(str2)) 
-
-	str1 = enrich_str("......................................................p.........")
-	str2 = enrich_str(".........................................................p......")
-
-
-	print diff(derich_str(str1), derich_str(str2)) 
-	str1 = enrich_str("r.b..b.rpppppppp.................................PPPPPPPPR.B..B.R")
-	str2 = enrich_str("r.b..br.pppppppp.................................PPPPPPPPR.B..B.R")
-
-	print ' '
-	#print str1[28] , str1[31]
-	print_derich_str( str1)
-	print len(derich_str(str1))
-	print diff(derich_str(str1), derich_str(str2))  , "(0,7) (0,6)"
-	'''
-	
-	str1 = enrich_str("......................................................P.........")
-	str2 = enrich_str(".........................................................P......")
-	print diff(derich_str(str1),derich_str(str2), BLACK) 
-	
-def test_black():
-
-	state = {"board" : enrich_str("..........P...r.................................................")}
-	#print enrich_str(state['board'])
-	print_board(state['board'])
-	board = Board(state)
-	p_lst = board.get_piece_lst(state,BLACK )
-	for b in p_lst:
-		print b.pos
-		for newBoard in b.generate():
-			print_board(newBoard)
-
-test_diff()
