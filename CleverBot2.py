@@ -33,6 +33,70 @@ def start(self):
 
 '''
 
+def make_value(color):
+
+	def value(theBoard):
+		whites = 0
+		blacks = 0
+		maior_dist = 8
+		pos = 0
+		for c in theBoard:
+			if c == "p":
+				(x , y) = pos_to_coord(pos)
+				if (8 - x) > maior_dist:
+					maior_dist = 7 - x
+			if c.islower(): 
+				whites += 1
+			if c.isupper(): 
+				blacks += 1
+			pos += 1
+		delta = (whites - blacks) if color == WHITE else (blacks - whites)
+		return 0.5*(delta / float(12)) + 0.5*(maior_dist / float(8))
+	
+	return value
+		
+def max_move(this_board, value, my_color, depth):
+
+	if depth < 1:
+		return (value(this_board) , this_board)
+	else:
+
+		best_move = (-70 , this_board)
+		board  = Board(this_board)
+
+		pieces = board.get_piece_lst(my_color)
+		aux_lst = [p.generate() for p in pieces]
+		move_lst = [item for sublist in aux_lst for item in sublist]
+		for move in move_lst:
+			current_best = min_move(move, make_value(my_color * (-1)), my_color * (-1), depth-1)
+			if (current_best[0] > best_move[0]):
+				best_move = (current_best[0] , move)
+	return best_move
+			
+def min_move(this_board, value, my_color , depth):
+	
+	best_move = (70, this_board) # empty
+	
+	#Gerando filhos
+	board  = Board(this_board)
+	pieces = board.get_piece_lst((-1) * my_color)
+	aux_lst = [p.generate() for p in pieces]
+	move_lst = [item for sublist in aux_lst for item in sublist]
+	#print "min's board" , "depth",  depth , "possible moves" , len(move_lst)  , "my color" , my_color
+
+	for move in move_lst:
+		current_best = max_move(move,make_value(my_color * (-1)), my_color * (-1), depth-1)
+		if (current_best[0] < best_move[0]):
+			best_move = (current_best[0] , move)
+
+	return best_move
+ 
+def minimax(aBoard, color):
+	value = make_value(color)
+	return max_move(aBoard, value, color, 2)
+
+
+
 def str_case(str):
 	aux = ""
 	for c in str:
@@ -90,33 +154,24 @@ class CleverBot(LiacBot):
 	
 		the_board = str_mirror(str_reverse(enrich_str(state['board'])))
 		my_color = state['who_moves']
-		
 		board = Board(the_board)
 
 		if state['bad_move']:
 			print state['board']
 			raw_input()
 	
+		'''
 		pieces = board.get_piece_lst(my_color)
-		
-		
-		for p in pieces:
-			print p.pos
-		
-		
 		moves = random.choice(pieces).generate()
 		while len(moves) < 1 :
 			moves = random.choice(pieces).generate()
-			
 		the_move = random.choice(moves)
-		self.counter = self.counter + 1
-
-		print " "
-		print_derich_str(the_move)
-		
-			
+		'''
+		the_score , the_move = minimax(the_board, my_color)
+		print the_move
+		#print " "
+		#print_derich_str(the_move)
 		(f , b )= diff(derich_str(the_board), derich_str(the_move), my_color)
-
 		print f , b
 		self.send_move(f,b)
 
@@ -149,13 +204,13 @@ def diff(str1 , str2 , color):
 			t = position
 	
 	if (str2[f].islower()) and str2[f].isalpha() and color == WHITE:
-		print "swap"
+		#print "swap"
 		aux = t
 		t = f
 		f = aux
 	
 	if (str2[f].isupper()) and str2[f].isalpha() and color == BLACK:
-		print "swap BLACK"
+		#print "swap BLACK"
 		aux = t
 		t = f
 		f = aux
@@ -180,7 +235,7 @@ class Board(object):
 		
 		for char in state:
 			if char != '.' and char != '*' and test(char):
-				print char
+				#print char
 				piece_lst.append( self.select_piece(char,state, str_pos, color))
 			str_pos += 1
 		return piece_lst

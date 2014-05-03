@@ -53,26 +53,23 @@ class Board(object):
 	def __init__(self, state):
 		self.state = state
 
-
-
-	def get_piece_lst(self,state, color):
+	def get_piece_lst(self,color):
 		piece_lst = []
 		str_pos = 0
-		
+		state = self.state
 		def test(c):
 			if color == BLACK : 
 				return c.isupper()
 			else:
 				return c.islower()
 		
-		for char in state["board"]:
+		for char in state:
 			if char != '.' and char != '*' and test(char):
-				print char
-				piece_lst.append( self.select_piece(char,state['board'], str_pos, color))
+				piece_lst.append( self.select_piece(char,state, str_pos, color))
 			str_pos += 1
 		return piece_lst
 
-	def select_piece(self,char, board, str_pos, my_color):
+	def select_piece(self,char, board, str_pos, color):
 	
 		PIECES = {
 			'r': Rook,
@@ -81,14 +78,9 @@ class Board(object):
 			#'q': Queen,
 			#'n': Knight,
 		}
-		
 		the_piece = PIECES[char.lower()]
-		if char.lower() == char:
-			color = WHITE
-		else:
-			color = BLACK
+
 		return the_piece(color,board,str_pos)
-		
 
 class Piece(object):
 	def __init__(self):
@@ -128,7 +120,7 @@ class Pawn(Piece):
 		board_lst = []
 		
 		if (color == BLACK):
-			print "black"
+			#print "black"
 			board = list(str_reverse("".join(board)))
 			#print_board("".join(board))
 			pos = 119 - pos
@@ -495,4 +487,80 @@ def test_black():
 		for newBoard in b.generate():
 			print_board(newBoard)
 
-test_diff()
+def conc_moves(str, depth):
+
+	if(depth == 0):
+		return ""
+	board  = Board(str)
+	pieces = board.get_piece_lst(WHITE)
+	move_lst = [p.generate() for p in pieces]
+	alst = [item for sublist in move_lst for item in sublist]
+	
+	for move in alst:
+		print_board(move)
+		conc_moves(move, depth -1)
+
+def make_value(color):
+
+	def value(theBoard):
+		whites = 0
+		blacks = 0
+
+		for c in theBoard:
+			if c.islower(): 
+				whites += 1
+			if c.isupper(): 
+				blacks += 1
+		return (whites - blacks) if color == WHITE else (blacks - whites) 
+	return value
+		
+def max_move(this_board, value, my_color, depth):
+
+	if depth < 1:
+		return (value(this_board) , this_board)
+	else:
+
+		best_move = (-70 , this_board)
+		board  = Board(this_board)
+
+		pieces = board.get_piece_lst(my_color)
+		aux_lst = [p.generate() for p in pieces]
+		move_lst = [item for sublist in aux_lst for item in sublist]
+		#print "max's board" , "depth" , depth , "possible moves" , len(move_lst) , "my color" , my_color
+
+		for move in move_lst:
+			current_best = min_move(move, make_value(my_color * (-1)), my_color * (-1), depth-1)
+			#print current_best[0] , "current best in max"
+			if (current_best[0] > best_move[0]):
+				best_move = (current_best[0] , move)
+	return best_move
+			
+def min_move(this_board, value, my_color , depth):
+	
+	best_move = (70, this_board) # empty
+	
+	#Gerando filhos
+	board  = Board(this_board)
+	pieces = board.get_piece_lst((-1) * my_color)
+	aux_lst = [p.generate() for p in pieces]
+	move_lst = [item for sublist in aux_lst for item in sublist]
+	#print "min's board" , "depth",  depth , "possible moves" , len(move_lst)  , "my color" , my_color
+
+	for move in move_lst:
+		current_best = max_move(move,make_value(my_color * (-1)), my_color * (-1), depth-1)
+		if (current_best[0] < best_move[0]):
+			best_move = (current_best[0] , move)
+
+	return best_move
+ 
+def minimax(aBoard, color):
+	value = make_value(color)
+	return max_move(aBoard, value, color, 4)
+
+print_board(enrich_str("................p........P....R................p................."))
+ret = minimax(enrich_str("................p........P....R................p................."), WHITE)
+print "AFTERMATH"
+print "score final", ret[0]
+print_board(ret[1])
+
+#conc_moves(enrich_str("r.b..b.rpppppppp.................................PPPPPPPPR.B..B.R"), 4)
