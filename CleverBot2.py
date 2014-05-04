@@ -38,44 +38,85 @@ def make_value(color):
 	def value(theBoard):
 		whites = 0
 		blacks = 0
-		maior_dist = 8
+		maior_dist_w = -sys.maxint
+		maior_dist_b = 0
 		pos = 0
+		wr = 0 
+		br = 0
+		wb = 0
+		bb = 0
+		wp = 0
+		bp = 0
 		for c in theBoard:
 			if c == "p":
-				(x , y) = pos_to_coord(pos)
-				if (8 - x) > maior_dist:
-					maior_dist = 7 - x
+				#(x , y) = pos_to_coord(pos)
+				(x , y) = (pos / 12 , pos % 10)
+				if (x-10) > maior_dist_w:
+					#print (x-10)  , "update" , x , "x"
+					maior_dist_w = x-10
+			if c == "P":
+				(x , y) = (pos / 12 , pos % 10)
+				if (10-x) > maior_dist_b:
+					maior_dist_b = 10-x
+			wr = wr + 1 if c == 'r' else wr
+			br = br + 1 if c == 'R' else br
+			wb = wb + 1 if c == 'b' else wb
+			bb = bb + 1 if c == 'B' else bb
+			wp = wp + 1 if c == 'p' else wp
+			bp = bp + 1 if c == 'P' else bp
+			
 			if c.islower(): 
 				whites += 1
 			if c.isupper(): 
 				blacks += 1
 			pos += 1
+		
+		if(color == WHITE):
+			material = 0.5*(wr - br)/float(2)  + 0.20*(wb - bb)/float(2) + 0.05*(bb - wp)/float(12)
+		else:
+			aux = maior_dist_w
+			maior_dist_w = maior_dist_b
+			maior_dist_b = aux
+			material = 0.5*(br - wr)/float(2) + 0.20*(bb - wb)/float(2) + 0.05*(wp - bp)/float(12)
+		
 		delta = (whites - blacks) if color == WHITE else (blacks - whites)
-		return 0.5*(delta / float(12)) + 0.5*(maior_dist / float(8))
+		#print 0.5*(material/float(3)) + 0.5*((maior_dist_w/float(8)) - (maior_dist_b/float(8)))
+		#print (10 + maior_dist_w)
+		return 0.8*(material/float(3)) + 0.2*(( ( 10 +  maior_dist_w)/float(10)) - (maior_dist_b/float(10)))
+		#return material + maior_dist * maior_dist
 	
 	return value
-		
-def max_move(this_board, value, my_color, depth):
+	
+def max_move(this_board, value, my_color, depth, alpha , beta):
 
 	if depth < 1:
 		return (value(this_board) , this_board)
 	else:
 
-		best_move = (-70 , this_board)
+		best_move = (-sys.maxint , this_board)
 		board  = Board(this_board)
 
 		pieces = board.get_piece_lst(my_color)
 		aux_lst = [p.generate() for p in pieces]
 		move_lst = [item for sublist in aux_lst for item in sublist]
+		#print "max's board" , "depth" , depth , "possible moves" , len(move_lst) , "my color" , my_color
+
 		for move in move_lst:
-			current_best = min_move(move, make_value(my_color * (-1)), my_color * (-1), depth-1)
+			current_best = min_move(move, make_value(my_color * (-1)), my_color * (-1), depth-1, alpha , beta)
+	
 			if (current_best[0] > best_move[0]):
 				best_move = (current_best[0] , move)
+			
+			if(best_move[0] >= beta):
+				return best_move
+			
+			alpha = max(alpha, best_move[0])
+			
 	return best_move
 			
-def min_move(this_board, value, my_color , depth):
+def min_move(this_board, value, my_color , depth , alpha, beta):
 	
-	best_move = (70, this_board) # empty
+	best_move = (sys.maxint, this_board) # empty
 	
 	#Gerando filhos
 	board  = Board(this_board)
@@ -85,15 +126,19 @@ def min_move(this_board, value, my_color , depth):
 	#print "min's board" , "depth",  depth , "possible moves" , len(move_lst)  , "my color" , my_color
 
 	for move in move_lst:
-		current_best = max_move(move,make_value(my_color * (-1)), my_color * (-1), depth-1)
+		current_best = max_move(move,make_value(my_color * (-1)), my_color * (-1), depth-1, alpha, beta)
 		if (current_best[0] < best_move[0]):
 			best_move = (current_best[0] , move)
-
+		
+		if(best_move[0] <= alpha):
+			return best_move
+			
+		beta = min(beta, best_move[0])
 	return best_move
  
 def minimax(aBoard, color):
 	value = make_value(color)
-	return max_move(aBoard, value, color, 2)
+	return max_move(aBoard, value, color, 4, -sys.maxint, sys.maxint)
 
 
 
@@ -160,23 +205,20 @@ class CleverBot(LiacBot):
 			print state['board']
 			raw_input()
 	
-		'''
-		pieces = board.get_piece_lst(my_color)
-		moves = random.choice(pieces).generate()
-		while len(moves) < 1 :
-			moves = random.choice(pieces).generate()
-		the_move = random.choice(moves)
-		'''
-		the_score , the_move = minimax(the_board, my_color)
-		print the_move
-		#print " "
-		#print_derich_str(the_move)
-		(f , b )= diff(derich_str(the_board), derich_str(the_move), my_color)
+		if(self.counter == 0):
+			(f,b) = ((1,3),(3,3)) if my_color == WHITE else ((6,3),(5,3))
+		elif(self.counter == 1):
+			(f,b) = ((1,6),(3,6)) if my_color == WHITE else ((6,6),(5,6))
+		else:
+			the_score , the_move = minimax(the_board, my_color)
+			(f , b )= diff(derich_str(the_board), derich_str(the_move), my_color)
+		self.counter += 1 
 		print f , b
 		self.send_move(f,b)
 
 
 	def on_game_over(self, state):
+		self.counter = 0
 		print 'Game Over.'
 
 # ==============================================================
@@ -238,6 +280,8 @@ class Board(object):
 				#print char
 				piece_lst.append( self.select_piece(char,state, str_pos, color))
 			str_pos += 1
+		
+		piece_lst.sort(key = lambda x: x.precedence)
 		return piece_lst
 
 	def select_piece(self,char, board, str_pos, color):
@@ -281,6 +325,7 @@ class Pawn(Piece):
 		self.piece_color = piece_color
 		self.board = board
 		self.pos = position
+		self.precedence = 1
 
 	def __str__(self):
 		print board
@@ -292,7 +337,7 @@ class Pawn(Piece):
 		board_lst = []
 		
 		if (color == BLACK):
-			print "black move"
+			#print "black move"
 			board = list(str_reverse("".join(board)))
 			#print_board("".join(board))
 			pos = 119 - pos
@@ -330,7 +375,7 @@ class Rook(Piece):
 		self.piece_color = piece_color
 		self.board = board
 		self.pos = position
-
+		self.precedence = 3
 	def __str__(self):
 		print board
 
@@ -406,7 +451,8 @@ class Bishop(Piece):
 		self.piece_color = piece_color
 		self.board = board
 		self.pos = position
-
+		self.precedence = 2
+		
 	def __str__(self):
 		print board
 

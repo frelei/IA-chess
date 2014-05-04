@@ -1,5 +1,5 @@
 import copy
-
+import sys
 '''
 state = {
 "board" : "r.b...b.rpppppppp................................PPPPPPPPR.B..B.R"
@@ -514,13 +514,68 @@ def make_value(color):
 		return (whites - blacks) if color == WHITE else (blacks - whites) 
 	return value
 		
-def max_move(this_board, value, my_color, depth):
+def make_value(color):
+
+	def value(theBoard):
+		whites = 0
+		blacks = 0
+		maior_dist_w = -sys.maxint
+		maior_dist_b = 0
+		pos = 0
+		wr = 0 
+		br = 0
+		wb = 0
+		bb = 0
+		wp = 0
+		bp = 0
+		for c in theBoard:
+			if c == "p":
+				#(x , y) = pos_to_coord(pos)
+				(x , y) = (pos / 12 , pos % 10)
+				if (x-10) > maior_dist_w:
+					#print (x-10)  , "update" , x , "x"
+					maior_dist_w = x-10
+			if c == "P":
+				(x , y) = (pos / 12 , pos % 10)
+				if (10-x) > maior_dist_b:
+					maior_dist_b = 10-x
+			wr = wr + 1 if c == 'r' else wr
+			br = br + 1 if c == 'R' else br
+			wb = wb + 1 if c == 'b' else wb
+			bb = bb + 1 if c == 'B' else bb
+			wp = wp + 1 if c == 'p' else wp
+			bp = bp + 1 if c == 'P' else bp
+			
+			if c.islower(): 
+				whites += 1
+			if c.isupper(): 
+				blacks += 1
+			pos += 1
+		
+		if(color == WHITE):
+			material = 0.5*(wr - br)/float(2)  + 0.25*(wb - bb)/float(2) + 0.25*(bb - wp)/float(12)
+		else:
+			aux = maior_dist_w
+			maior_dist_w = maior_dist_b
+			maior_dist_b = aux
+			material = 0.5*(br - wr)/float(2) + 0.25*(bb - wb)/float(2) + 0.25*(wp - bp)/float(12)
+		
+		delta = (whites - blacks) if color == WHITE else (blacks - whites)
+		#print 0.5*(material/float(3)) + 0.5*((maior_dist_w/float(8)) - (maior_dist_b/float(8)))
+		#print (10 + maior_dist_w)
+		return 0.5*(material/float(3)) + 0.5*(( ( 10 +  maior_dist_w)/float(10)) - (maior_dist_b/float(10)))
+		#return material + maior_dist * maior_dist
+	
+	return value
+		
+		
+def max_move(this_board, value, my_color, depth, alpha , beta):
 
 	if depth < 1:
 		return (value(this_board) , this_board)
 	else:
 
-		best_move = (-70 , this_board)
+		best_move = (-sys.maxint , this_board)
 		board  = Board(this_board)
 
 		pieces = board.get_piece_lst(my_color)
@@ -529,15 +584,21 @@ def max_move(this_board, value, my_color, depth):
 		#print "max's board" , "depth" , depth , "possible moves" , len(move_lst) , "my color" , my_color
 
 		for move in move_lst:
-			current_best = min_move(move, make_value(my_color * (-1)), my_color * (-1), depth-1)
-			#print current_best[0] , "current best in max"
+			current_best = min_move(move, make_value(my_color * (-1)), my_color * (-1), depth-1, alpha , beta)
+	
 			if (current_best[0] > best_move[0]):
 				best_move = (current_best[0] , move)
+			
+			if(best_move[0] >= beta):
+				return best_move
+			
+			alpha = max(alpha, best_move[0])
+			
 	return best_move
 			
-def min_move(this_board, value, my_color , depth):
+def min_move(this_board, value, my_color , depth , alpha, beta):
 	
-	best_move = (70, this_board) # empty
+	best_move = (sys.maxint, this_board) # empty
 	
 	#Gerando filhos
 	board  = Board(this_board)
@@ -547,20 +608,31 @@ def min_move(this_board, value, my_color , depth):
 	#print "min's board" , "depth",  depth , "possible moves" , len(move_lst)  , "my color" , my_color
 
 	for move in move_lst:
-		current_best = max_move(move,make_value(my_color * (-1)), my_color * (-1), depth-1)
+		current_best = max_move(move,make_value(my_color * (-1)), my_color * (-1), depth-1, alpha, beta)
 		if (current_best[0] < best_move[0]):
 			best_move = (current_best[0] , move)
-
+		
+		if(best_move[0] <= alpha):
+			return best_move
+			
+		beta = min(beta, best_move[0])
 	return best_move
  
 def minimax(aBoard, color):
 	value = make_value(color)
-	return max_move(aBoard, value, color, 4)
+	return max_move(aBoard, value, color,2, -sys.maxint, sys.maxint)
 
-print_board(enrich_str("................p........P....R................p................."))
-ret = minimax(enrich_str("................p........P....R................p................."), WHITE)
+#print_board(enrich_str("................p....p...P....R................p.p..............."))
+#ret = minimax(enrich_str("................p....p...P....R................p.p..............."), WHITE)
+print_board(enrich_str("................p....p...P....R................p.p..............."))
+ret = minimax(enrich_str("................p....p...P....R................p.p..............."), BLACK)
 print "AFTERMATH"
 print "score final", ret[0]
 print_board(ret[1])
-
+#ret2 = minimax(ret[1], WHITE)
+#print_board(ret2[1])
+#ret3 = minimax(ret2[1], WHITE)
+#print_board(ret3[1])
+#ret2 = minimax(ret[1], WHITE)
+#print_board(ret2[1])
 #conc_moves(enrich_str("r.b..b.rpppppppp.................................PPPPPPPPR.B..B.R"), 4)
